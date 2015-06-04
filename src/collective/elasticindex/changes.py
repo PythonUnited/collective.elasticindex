@@ -10,8 +10,9 @@ from Products.CMFCore.CatalogTool import _mergedLocalRoles
 from Products.CMFCore.interfaces import IFolderish, IContentish
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces.siteroot import IPloneSiteRoot
-from Products.CMFPlone.utils import safe_unicode
+from Products.CMFPlone.utils import safe_unicode, safe_callable
 from plone.i18n.normalizer.base import mapUnicode
+from plone.indexer.wrapper import IndexableObjectWrapper
 from transaction.interfaces import ISavepointDataManager, IDataManagerSavepoint
 from zope.component import queryUtility
 from zope.interface import implements
@@ -71,7 +72,15 @@ def get_data(content, security=False, domain=None):
         return None, None
     title = content.Title()
     try:
-        text = content.SearchableText()
+        # wrap content, so the SearchableText will be 
+        # delegated to IIndexer adapters as appropriate.
+        # This will e.g. take care of PDF file indexing.
+        cat = getToolByName(content, 'portal_catalog')
+        wrapper = IndexableObjectWrapper(content, cat)
+        text = getattr(wrapper, 'SearchableText', None)
+        if safe_callable(text):
+            text = text()
+
     except:
         text = title
     url = content.absolute_url()

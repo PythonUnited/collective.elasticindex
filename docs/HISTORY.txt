@@ -4,7 +4,8 @@ Changes
 1.2.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- wrap content in IndexableObjectWrapper for indexing PDFs (and other files)
+[huubbouma]
 
 
 1.2.5 (2015-04-21)
