@@ -48,3 +48,9 @@ def content_published(content, event):
           event.old_state.getId() != 'published'):
         changes.index_content(content)
 
+
+@ignore_factorytool
+def content_state_changed(content, event):
+
+    if not changes.only_published:
+        changes.index_content(content)

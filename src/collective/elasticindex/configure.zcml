@@ -32,6 +32,18 @@
           Products.DCWorkflow.interfaces.IAfterTransitionEvent"
      />
 
+  <!-- state changed -->
+  <subscriber
+     handler=".subscribers.content_state_changed"
+     for="Products.CMFCore.interfaces.IContentish
+          Products.DCWorkflow.interfaces.IAfterTransitionEvent"
+     />
+  <subscriber
+     handler=".subscribers.content_state_changed"
+     for="Products.CMFCore.interfaces.IFolderish
+          Products.DCWorkflow.interfaces.IAfterTransitionEvent"
+     />
+
   <!-- Content modified -->
   <subscriber
      handler=".subscribers.content_modified"
