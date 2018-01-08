@@ -28,6 +28,10 @@ INT_MAPPING = {
     'type': 'integer',
 }
 
+SUGGEST_MAPPING = {
+    'type': 'completion'
+}
+
 DOCUMENT_MAPPING = {
     # Stored
     'title': STORED_TEXT_MAPPING,
@@ -47,6 +51,8 @@ DOCUMENT_MAPPING = {
     'publishedYear': INT_MAPPING,
     'sortableTitle': KEYWORD_MAPPING,
     'authorizedUsers': KEYWORD_MAPPING,
+
+    'suggest': SUGGEST_MAPPING,
 }
 
 

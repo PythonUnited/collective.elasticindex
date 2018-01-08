@@ -71,8 +71,10 @@ def get_data(content, security=False, domain=None):
     if not uid:
         return None, None
     title = content.Title()
+    description = content.Description()
+    subject = content.Subject()
     try:
-        # wrap content, so the SearchableText will be 
+        # wrap content, so the SearchableText will be
         # delegated to IIndexer adapters as appropriate.
         # This will e.g. take care of PDF file indexing.
         cat = getToolByName(content, 'portal_catalog')
@@ -91,8 +93,8 @@ def get_data(content, security=False, domain=None):
     data = {'title': title,
             'metaType': content.portal_type,
             'sortableTitle': sortable_string(title),
-            'description': content.Description(),
-            'subject': content.Subject(),
+            'description': description,
+            'subject': subject,
             'contributors': content.Contributors(),
             'url': url,
             'author': content.Creator(),
@@ -111,6 +113,16 @@ def get_data(content, security=False, domain=None):
     modified = content.modified()
     if modified is not (None, 'None'):
         data['modified'] = modified.strftime('%Y-%m-%dT%H:%M:%S')
+
+    if not security or 'Anonymous' in data['authorizedUsers']:
+        sentences = re.compile(r'([A-Z][^\.!?]*[\.!?])', re.M)
+
+        suggested_terms = [title]
+        suggested_terms += sentences.findall(description)
+        suggested_terms += list(subject)
+        data['suggest'] = map(
+            lambda term: term.strip(), suggested_terms
+        )
 
     return uid, data
 
@@ -148,7 +160,7 @@ class ElasticSavepoint(object):
     implements(IDataManagerSavepoint)
 
     def __init__(self, manager, index, unindex):
-        self.manager = manager 
+        self.manager = manager
         self._index = index.copy()
         self._unindex = set(unindex)
 
