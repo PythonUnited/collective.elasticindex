@@ -2,60 +2,53 @@
 import pyes
 import urlparse
 
-ANALYZED_STRING_MAPPING = {
-    'index': 'analyzed',
-    'type': 'string',
-    'store': 'yes'
+TEXT_MAPPING = {
+    'type': 'text',
 }
 
-STORED_STRING_MAPPING = {
-    'index': 'not_analyzed',
-    'type': 'string',
-    'store': 'yes',
+STORED_TEXT_MAPPING = {
+    'type': 'text',
+    'store': True,
 }
 
-STRING_MAPPING = {
-    'index': 'not_analyzed',
-    'type': 'string',
-    'store': 'no',
+KEYWORD_MAPPING = {
+    'type': 'keyword',
+}
+
+STORED_KEYWORD_MAPPING = {
+    'type': 'keyword',
+    'store': True
 }
 
 DATE_MAPPING = {
-    'index': 'not_analyzed',
     'type': 'date',
-    'store': 'no'
 }
 
 INT_MAPPING = {
-    'index': 'not_analyzed',
     'type': 'integer',
-    'store': 'no'
 }
 
 DOCUMENT_MAPPING = {
-    '_index': {
-        'enabled': True
-    },
     # Stored
-    'title': ANALYZED_STRING_MAPPING,
-    'subject': ANALYZED_STRING_MAPPING,
-    'description': ANALYZED_STRING_MAPPING,
-    'content': ANALYZED_STRING_MAPPING,
-    'author': ANALYZED_STRING_MAPPING,
-    'contributors': ANALYZED_STRING_MAPPING,
+    'title': STORED_TEXT_MAPPING,
+    'subject': STORED_TEXT_MAPPING,
+    'description': STORED_TEXT_MAPPING,
+    'content': STORED_TEXT_MAPPING,
+    'author': STORED_TEXT_MAPPING,
+    'contributors': STORED_TEXT_MAPPING,
 
     # Not analyzed
-    '_id' : STORED_STRING_MAPPING,
-    'url': STORED_STRING_MAPPING,
-    'metaType': STORED_STRING_MAPPING,
+    'url': STORED_KEYWORD_MAPPING,
+    'metaType': STORED_KEYWORD_MAPPING,
 
     # Not stored
     'created': DATE_MAPPING,
     'modified': DATE_MAPPING,
     'publishedYear': INT_MAPPING,
-    'sortableTitle': STRING_MAPPING,
-    'authorizedUsers': STRING_MAPPING,
+    'sortableTitle': KEYWORD_MAPPING,
+    'authorizedUsers': KEYWORD_MAPPING,
 }
+
 
 def parse_url(url):
     info = urlparse.urlparse(url)
