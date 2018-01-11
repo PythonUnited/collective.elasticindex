@@ -1,4 +1,4 @@
-
+from plone import api
 import pyes
 import urlparse
 
@@ -76,10 +76,39 @@ def connect(urls):
 
 
 def create_index(settings):
+    language_settings = None
+    if api.portal.get_default_language() == 'nl':
+        language_settings = {
+            'settings': {
+                'analysis': {
+                    'filter': {
+                        'dutch_stop': {
+                            'stopwords': '_dutch_',
+                            'type': 'stop'
+                        },
+                        'dutch_stemmer': {
+                            'type': 'stemmer',
+                            'language': 'dutch'
+                        }
+                    },
+                    'analyzer': {
+                        'dutch': {
+                            'filter': [
+                                'lowercase',
+                                'dutch_stop',
+                                'dutch_stemmer'
+                            ],
+                           'tokenizer': 'standard'
+                        }
+                    }
+                }
+            }
+        }
+
     connection = connect(settings.server_urls)
-    connection.indices.create_index_if_missing(settings.index_name)
+    connection.indices.create_index_if_missing(settings.index_name, language_settings)
     connection.indices.put_mapping(
-        'document', {'properties' : DOCUMENT_MAPPING}, [settings.index_name])
+        'document', {'properties': DOCUMENT_MAPPING}, [settings.index_name])
 
 
 def delete_index(settings):
