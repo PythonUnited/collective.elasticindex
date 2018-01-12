@@ -29,7 +29,8 @@ INT_MAPPING = {
 }
 
 SUGGEST_MAPPING = {
-    'type': 'completion'
+    'type': 'completion',
+    'max_input_length': 80
 }
 
 DOCUMENT_MAPPING = {
