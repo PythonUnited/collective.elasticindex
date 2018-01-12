@@ -11,6 +11,7 @@ from Products.CMFCore.interfaces import IFolderish, IContentish
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces.siteroot import IPloneSiteRoot
 from Products.CMFPlone.utils import safe_unicode, safe_callable
+from collective.elasticindex.suggester import ISuggester
 from plone.i18n.normalizer.base import mapUnicode
 from plone.indexer.wrapper import IndexableObjectWrapper
 from transaction.interfaces import ISavepointDataManager, IDataManagerSavepoint
@@ -71,8 +72,6 @@ def get_data(content, security=False, domain=None):
     if not uid:
         return None, None
     title = content.Title()
-    description = content.Description()
-    subject = content.Subject()
     try:
         # wrap content, so the SearchableText will be
         # delegated to IIndexer adapters as appropriate.
@@ -93,8 +92,8 @@ def get_data(content, security=False, domain=None):
     data = {'title': title,
             'metaType': content.portal_type,
             'sortableTitle': sortable_string(title),
-            'description': description,
-            'subject': subject,
+            'description': content.Description(),
+            'subject': content.Subject(),
             'contributors': content.Contributors(),
             'url': url,
             'author': content.Creator(),
@@ -115,14 +114,7 @@ def get_data(content, security=False, domain=None):
         data['modified'] = modified.strftime('%Y-%m-%dT%H:%M:%S')
 
     if not security or 'Anonymous' in data['authorizedUsers']:
-        sentences = re.compile(r'([A-Z][^\.!?]*[\.!?])', re.M)
-
-        suggested_terms = [title]
-        suggested_terms += sentences.findall(description)
-        suggested_terms += list(subject)
-        data['suggest'] = map(
-            lambda term: term.strip(), suggested_terms
-        )
+        data['suggest'] = ISuggester(content).terms()
 
     return uid, data
 

@@ -101,4 +101,9 @@
      />
   <include package=".browser" />
 
+  <adapter
+     for="Products.CMFCore.interfaces._content.IContentish"
+     factory=".suggester.Suggester"
+     provides=".suggester.ISuggester" />
+
 </configure>
