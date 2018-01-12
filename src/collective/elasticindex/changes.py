@@ -113,7 +113,8 @@ def get_data(content, security=False, domain=None):
     if modified is not (None, 'None'):
         data['modified'] = modified.strftime('%Y-%m-%dT%H:%M:%S')
 
-    if not security or 'Anonymous' in data['authorizedUsers']:
+    if (not security or 'Anonymous' in data['authorizedUsers']) and \
+            IContentish.providedBy(content):
         data['suggest'] = ISuggester(content).terms()
 
     return uid, data
