@@ -11,6 +11,17 @@ STORED_TEXT_MAPPING = {
     'store': True,
 }
 
+STORED_NL_TEXT_MAPPING = {
+    'type': 'text',
+    'store': True,
+    'fields': {
+        'dutch': {
+            'type': 'text',
+            'analyzer': 'custom_dutch',
+        }
+    }
+}
+
 KEYWORD_MAPPING = {
     'type': 'keyword',
 }
@@ -35,10 +46,11 @@ SUGGEST_MAPPING = {
 
 DOCUMENT_MAPPING = {
     # Stored
-    'title': STORED_TEXT_MAPPING,
-    'subject': STORED_TEXT_MAPPING,
-    'description': STORED_TEXT_MAPPING,
-    'content': STORED_TEXT_MAPPING,
+    'title': STORED_NL_TEXT_MAPPING,
+    'subject': STORED_NL_TEXT_MAPPING,
+    'description': STORED_NL_TEXT_MAPPING,
+    'content': STORED_NL_TEXT_MAPPING,
+
     'author': STORED_TEXT_MAPPING,
     'contributors': STORED_TEXT_MAPPING,
 
@@ -87,19 +99,28 @@ def create_index(settings):
                             'stopwords': '_dutch_',
                             'type': 'stop'
                         },
-                        'dutch_stemmer': {
+                        'dutch_kp_stemmer': {
                             'type': 'stemmer',
-                            'language': 'dutch'
+                            'language': 'dutch_kp'
+                        },
+                        'dutch_override': {
+                            'type': 'stemmer_override',
+                            'rules': [
+                                'calamiteiten=>calamiteit',
+                                'calamiteit=>calamiteit',
+                            ]
                         }
                     },
                     'analyzer': {
-                        'dutch': {
+                        'custom_dutch': {
+                            'type': 'custom',
+                            'tokenizer': 'standard',
                             'filter': [
                                 'lowercase',
                                 'dutch_stop',
-                                'dutch_stemmer'
+                                'dutch_override',
+                                'dutch_kp_stemmer',
                             ],
-                           'tokenizer': 'standard'
                         }
                     }
                 }
@@ -107,7 +128,8 @@ def create_index(settings):
         }
 
     connection = connect(settings.server_urls)
-    connection.indices.create_index_if_missing(settings.index_name, language_settings)
+    connection.indices.create_index_if_missing(settings.index_name,
+                                               language_settings)
     connection.indices.put_mapping(
         'document', {'properties': DOCUMENT_MAPPING}, [settings.index_name])
 
