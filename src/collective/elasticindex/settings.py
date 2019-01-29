@@ -1,125 +1,69 @@
 
 from Acquisition import aq_base
 from Products.CMFCore.interfaces import IPropertiesTool
+from collective.elasticindex.interfaces import IElasticSettings
 from zope.component import getUtility
-
-
-class EmptySettings(object):
-    only_published = True
-    index_security = False
-    index_name = None
-    server_urls = []
-    public_server_urls = []
-    public_through_plone = False
-    normalize_domain_name = None
+from plone.registry.interfaces import IRegistry
+from plone import api
 
 
 class SettingsAdapter(object):
 
     def __init__(self, context):
         self._id = context.getId()
-        properties = getUtility(IPropertiesTool)
-        self._activated = hasattr(
-            aq_base(properties),
-            'elasticindex_properties')
-        if self._activated:
-            self._properties = properties.elasticindex_properties
-        else:
-            self._properties = EmptySettings()
+
+        registry = getUtility(IRegistry)
+        records = registry.forInterface(IElasticSettings)
+        self._activated = bool(records)
+
+    @property
+    def activated(self):
+        return self._activated
 
     def get_search_urls(self):
         return map(lambda u: '/'.join((u, self.index_name, '_search')),
             self.public_server_urls or self.server_urls)
 
     @property
-    def activated(self):
-        return self._activated
+    def only_published(self):
+        return api.portal.get_registry_record(
+            'collective.elasticindex.interfaces.IElasticSettings.only_published'
+        )
 
-    @apply
-    def only_published():
+    @property
+    def index_security(self):
+        return api.portal.get_registry_record(
+            'collective.elasticindex.interfaces.IElasticSettings.index_security'
+        )
 
-        def getter(self):
-            return bool(self._properties.only_published)
+    @property
+    def index_name(self):
+        return api.portal.get_registry_record(
+            'collective.elasticindex.interfaces.IElasticSettings.index_name'
+        )
 
-        def setter(self, value):
-            self._properties.only_published = bool(value)
-            return value
+    @property
+    def normalize_domain_name(self):
+        return api.portal.get_registry_record(
+            'collective.elasticindex.interfaces.IElasticSettings.'
+            'normalize_domain_name'
+        )
 
-        return property(getter, setter)
+    @property
+    def server_urls(self):
+        return api.portal.get_registry_record(
+            'collective.elasticindex.interfaces.IElasticSettings.server_urls'
+        )
 
-    @apply
-    def index_security():
+    @property
+    def public_server_urls(self):
+        return api.portal.get_registry_record(
+            'collective.elasticindex.interfaces.IElasticSettings.'
+            'public_server_urls'
+        )
 
-        def getter(self):
-            return bool(self._properties.index_security)
-
-        def setter(self, value):
-            self._properties.index_security = bool(value)
-            return value
-
-        return property(getter, setter)
-
-    @apply
-    def index_name():
-
-        def getter(self):
-            if self._properties.index_name:
-                return self._properties.index_name
-            return self._id
-
-        def setter(self, value):
-            self._properties.index_name = value
-            return value
-
-        return property(getter, setter)
-
-    @apply
-    def normalize_domain_name():
-
-        def getter(self):
-            return self._properties.normalize_domain_name or None
-
-        def setter(self, value):
-            if value:
-                self._properties.normalize_domain_name = value
-            else:
-                self._properties.normalize_domain_name = None
-            return self._properties.normalize_domain_name
-
-        return property(getter, setter)
-
-    @apply
-    def server_urls():
-
-        def getter(self):
-            return self._properties.server_urls
-
-        def setter(self, value):
-            self._properties.server_urls = tuple(value)
-            return self._properties.server_urls
-
-        return property(getter, setter)
-
-    @apply
-    def public_server_urls():
-
-        def getter(self):
-            return self._properties.public_server_urls
-
-        def setter(self, value):
-            self._properties.public_server_urls = tuple(value)
-            return self._properties.public_server_urls
-
-        return property(getter, setter)
-
-    @apply
-    def public_through_plone():
-
-        def getter(self):
-            return bool(self._properties.public_through_plone)
-
-        def setter(self, value):
-            self._properties.public_through_plone = bool(value)
-            return value
-
-        return property(getter, setter)
+    @property
+    def public_through_plone(self):
+        return api.portal.get_registry_record(
+            'collective.elasticindex.interfaces.IElasticSettings.public_through_plone'
+        )
