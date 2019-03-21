@@ -100,7 +100,7 @@ def get_data(content, security=False, domain=None):
             'content': text}
 
     for key, value in data.items():
-        data[key] = safe_unicode(data['content'])
+        data[key] = safe_unicode(value)
 
     if security:
         data['authorizedUsers'] = get_security(content)
