@@ -1,4 +1,4 @@
-
+import json
 import logging
 import re
 import threading
@@ -98,6 +98,9 @@ def get_data(content, security=False, domain=None):
             'url': url,
             'author': content.Creator(),
             'content': text}
+
+    for key, value in data.items():
+        data[key] = safe_unicode(data['content'])
 
     if security:
         data['authorizedUsers'] = get_security(content)
