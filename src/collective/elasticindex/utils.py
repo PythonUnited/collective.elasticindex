@@ -39,6 +39,9 @@ INT_MAPPING = {
     'type': 'integer',
 }
 
+BOOL_MAPPING = {
+    'type': 'boolean'
+}
 SUGGEST_MAPPING = {
     'type': 'completion',
     'max_input_length': 80
@@ -61,9 +64,12 @@ DOCUMENT_MAPPING = {
     # Not stored
     'created': DATE_MAPPING,
     'modified': DATE_MAPPING,
+    'effective': DATE_MAPPING,
+    'expires': DATE_MAPPING,
     'publishedYear': INT_MAPPING,
     'sortableTitle': KEYWORD_MAPPING,
     'authorizedUsers': KEYWORD_MAPPING,
+    'exclude_from_nav': BOOL_MAPPING,
 
     'suggest': SUGGEST_MAPPING,
 }
@@ -90,6 +96,7 @@ def connect(urls):
 
 def create_index(settings):
     language_settings = None
+
     if api.portal.get_default_language() == 'nl':
         language_settings = {
             'settings': {

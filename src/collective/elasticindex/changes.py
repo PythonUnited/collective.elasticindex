@@ -89,12 +89,17 @@ def get_data(content, security=False, domain=None):
         parts = urlparse.urlparse(url)
         url = urlparse.urlunparse((parts[0], domain) + parts[2:])
 
+    exclude_from_nav = content.exclude_from_nav
+    if callable(exclude_from_nav):
+        exclude_from_nav = exclude_from_nav()
+
     data = {'title': title,
             'metaType': content.portal_type,
             'sortableTitle': sortable_string(title),
             'description': content.Description(),
             'subject': content.Subject(),
             'contributors': content.Contributors(),
+            'exclude_from_nav': exclude_from_nav,
             'url': url,
             'author': content.Creator(),
             'content': text}
@@ -115,6 +120,14 @@ def get_data(content, security=False, domain=None):
     modified = content.modified()
     if modified is not (None, 'None'):
         data['modified'] = modified.strftime('%Y-%m-%dT%H:%M:%S')
+
+    effective = content.effective()
+    if effective is not (None, 'None'):
+        data['effective'] = effective.strftime('%Y-%m-%dT%H:%M:%S')
+
+    expires = content.expires()
+    if expires is not (None, 'None'):
+        data['expires'] = expires.strftime('%Y-%m-%dT%H:%M:%S')
 
     if (not security or 'Anonymous' in data['authorizedUsers']) and \
             IContentish.providedBy(content):
