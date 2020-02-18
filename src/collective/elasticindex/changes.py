@@ -22,37 +22,40 @@ import transaction
 from collective.elasticindex.interfaces import IElasticSettings
 from collective.elasticindex.utils import connect
 
-logger = logging.getLogger('collective.elasticindex')
+logger = logging.getLogger("collective.elasticindex")
 
-num_sort_regex = re.compile('\d+')
+num_sort_regex = re.compile("\d+")
+
 
 def sortable_string(string):
     return num_sort_regex.sub(
-        lambda m: m.group().zfill(6),
-        mapUnicode(safe_unicode(string)).lower().strip())
+        lambda m: m.group().zfill(6), mapUnicode(safe_unicode(string)).lower().strip()
+    )
+
 
 def get_uid(content):
     """Return content identifier to use in ES.
     """
     if IPloneSiteRoot.providedBy(content):
-        uid = 'root'
+        uid = "root"
     else:
         uid = content.UID()
     return uid or None
+
 
 def get_security(content):
     """Return a list of roles and users with View permission.
     Used to filter out items you're not allowed to see.
     """
-    allowed = set(rolesForPermissionOn('View', content))
+    allowed = set(rolesForPermissionOn("View", content))
     # shortcut roles and only index the most basic system role if the object
     # is viewable by either of those
-    if 'Anonymous' in allowed:
-        return ['Anonymous']
-    elif 'Authenticated' in allowed:
-        return ['Authenticated']
+    if "Anonymous" in allowed:
+        return ["Anonymous"]
+    elif "Authenticated" in allowed:
+        return ["Authenticated"]
     try:
-        acl_users = getToolByName(content, 'acl_users', None)
+        acl_users = getToolByName(content, "acl_users", None)
         if acl_users is not None:
             local_roles = acl_users._getAllLocalRoles(content)
     except AttributeError:
@@ -60,10 +63,11 @@ def get_security(content):
     for user, roles in local_roles.items():
         for role in roles:
             if role in allowed:
-                allowed.add('user:' + user)
-    if 'Owner' in allowed:
-        allowed.remove('Owner')
+                allowed.add("user:" + user)
+    if "Owner" in allowed:
+        allowed.remove("Owner")
     return list(allowed)
+
 
 def get_data(content, security=False, domain=None):
     """Return data to index in ES.
@@ -76,64 +80,68 @@ def get_data(content, security=False, domain=None):
         # wrap content, so the SearchableText will be
         # delegated to IIndexer adapters as appropriate.
         # This will e.g. take care of PDF file indexing.
-        cat = getToolByName(content, 'portal_catalog')
+        cat = getToolByName(content, "portal_catalog")
         wrapper = IndexableObjectWrapper(content, cat)
-        text = getattr(wrapper, 'SearchableText', None)
+        text = getattr(wrapper, "SearchableText", None)
         if safe_callable(text):
             text = text()
 
-    except:
+    except Exception as e:
         text = title
     url = content.absolute_url()
     if domain:
         parts = urlparse.urlparse(url)
         url = urlparse.urlunparse((parts[0], domain) + parts[2:])
 
-    exclude_from_nav = content.exclude_from_nav
+    exclude_from_nav = getattr(content, "exclude_from_nav", "")
     if callable(exclude_from_nav):
         exclude_from_nav = exclude_from_nav()
 
-    data = {'title': title,
-            'metaType': content.portal_type,
-            'sortableTitle': sortable_string(title),
-            'description': content.Description(),
-            'subject': content.Subject(),
-            'contributors': content.Contributors(),
-            'exclude_from_nav': exclude_from_nav,
-            'url': url,
-            'author': content.Creator(),
-            'content': text}
+    data = {
+        "title": title,
+        "metaType": content.portal_type,
+        "sortableTitle": sortable_string(title),
+        "description": content.Description(),
+        "subject": content.Subject(),
+        "contributors": content.Contributors(),
+        "exclude_from_nav": exclude_from_nav,
+        "url": url,
+        "author": content.Creator(),
+        "content": text,
+    }
 
     for key, value in data.items():
         data[key] = safe_unicode(value)
 
     if security:
-        data['authorizedUsers'] = get_security(content)
+        data["authorizedUsers"] = get_security(content)
 
-    if hasattr(aq_base(content), 'pub_date_year'):
-        data['publishedYear'] = getattr(content, 'pub_date_year')
+    if hasattr(aq_base(content), "pub_date_year"):
+        data["publishedYear"] = getattr(content, "pub_date_year")
 
     created = content.created()
-    if created is not (None, 'None'):
-        data['created'] = created.strftime('%Y-%m-%dT%H:%M:%S')
+    if created is not (None, "None"):
+        data["created"] = created.strftime("%Y-%m-%dT%H:%M:%S")
 
     modified = content.modified()
-    if modified is not (None, 'None'):
-        data['modified'] = modified.strftime('%Y-%m-%dT%H:%M:%S')
+    if modified is not (None, "None"):
+        data["modified"] = modified.strftime("%Y-%m-%dT%H:%M:%S")
 
     effective = content.effective()
-    if effective is not (None, 'None'):
-        data['effective'] = effective.strftime('%Y-%m-%dT%H:%M:%S')
+    if effective is not (None, "None"):
+        data["effective"] = effective.strftime("%Y-%m-%dT%H:%M:%S")
 
     expires = content.expires()
-    if expires is not (None, 'None'):
-        data['expires'] = expires.strftime('%Y-%m-%dT%H:%M:%S')
+    if expires is not (None, "None"):
+        data["expires"] = expires.strftime("%Y-%m-%dT%H:%M:%S")
 
-    if (not security or 'Anonymous' in data['authorizedUsers']) and \
-            IContentish.providedBy(content):
-        data['suggest'] = ISuggester(content).terms()
+    if (
+        not security or "Anonymous" in data["authorizedUsers"]
+    ) and IContentish.providedBy(content):
+        data["suggest"] = ISuggester(content).terms()
 
     return uid, data
+
 
 def list_content(content, callback):
     """Recursively list CMF content out of the given one. ``callback``
@@ -155,7 +163,7 @@ def list_content(content, callback):
             count += 1
             total += 1
             if count > 200:
-                logger.info('{0} items indexed'.format(total))
+                logger.info("{0} items indexed".format(total))
                 transaction.commit()
                 content._p_jar.cacheGC()
                 callback()
@@ -200,8 +208,7 @@ class ElasticChanges(threading.local):
                 return None
             self._settings = IElasticSettings(portal)
             if self._settings.only_published:
-                self._get_status = getToolByName(
-                    portal, 'portal_workflow').getInfoFor
+                self._get_status = getToolByName(portal, "portal_workflow").getInfoFor
         return self._settings
 
     @property
@@ -227,24 +234,29 @@ class ElasticChanges(threading.local):
             return False
         if self._get_status is None:
             return True
-        return self._get_status(
-            content, 'review_state', default='nope') == 'published'
+        return self._get_status(content, "review_state", default="nope") == "published"
 
     def should_index_container(self, contents):
         if self._is_activated():
             for content in contents:
-                if (self._get_status is None or
-                    self._get_status(
-                        content, 'review_state', default='nope') == 'published'):
+                if (
+                    self._get_status is None
+                    or self._get_status(content, "review_state", default="nope")
+                    == "published"
+                ):
                     yield content
 
     def verify_and_index_container(self, content):
         if not self._is_activated():
             return
         for item in self.should_index_container(
-            list_content(content, self._is_activated)):
-            uid, data = get_data(item, security=self._settings.index_security,
-                                 domain=self._settings.normalize_domain_name)
+            list_content(content, self._is_activated)
+        ):
+            uid, data = get_data(
+                item,
+                security=self._settings.index_security,
+                domain=self._settings.normalize_domain_name,
+            )
             if data:
                 if uid in self._unindex:
                     self._unindex.remove(uid)
@@ -253,8 +265,11 @@ class ElasticChanges(threading.local):
     def index_content(self, content):
         if not self._is_activated():
             return
-        uid, data = get_data(content, security=self._settings.index_security,
-                             domain=self._settings.normalize_domain_name)
+        uid, data = get_data(
+            content,
+            security=self._settings.index_security,
+            domain=self._settings.normalize_domain_name,
+        )
         if data:
             if uid in self._unindex:
                 self._unindex.remove(uid)
@@ -275,7 +290,7 @@ class ElasticChanges(threading.local):
         pass
 
     def sortKey(self):
-        return 'Z' * 100
+        return "Z" * 100
 
     def abort(self, transaction):
         self._clear()
@@ -295,30 +310,28 @@ class ElasticChanges(threading.local):
             for uid, data in self._index.iteritems():
                 try:
                     self._connection.index(
-                        data,
-                        settings.index_name,
-                        'document',
-                        id=uid,
-                        bulk=True)
-                except:
-                    errormsg = 'Error while indexing document {0} in Elasticsearch'.format(uid)
+                        data, settings.index_name, "document", id=uid, bulk=True
+                    )
+                except Exception as e:
+                    errormsg = "Error while indexing document {0} in Elasticsearch".format(
+                        uid
+                    )
                     logger.exception(errormsg)
             for uid in self._unindex:
                 try:
                     self._connection.delete(
-                        settings.index_name,
-                        'document',
-                        uid,
-                        bulk=True)
-                except:
-                    errormsg = 'Error while unindexing document {0} in Elasticsearch'.format(uid)
+                        settings.index_name, "document", uid, bulk=True
+                    )
+                except Exception as e:
+                    errormsg = "Error while unindexing document {0} in Elasticsearch".format(
+                        uid
+                    )
                     logger.exception(errormsg)
             if self._index or self._unindex:
                 try:
                     self._connection.flush_bulk(True)
-                except:
-                    logger.exception(
-                        'Error while flushing changes to Elasticsearch')
+                except Exception as e:
+                    logger.exception("Error while flushing changes to Elasticsearch")
         self._clear()
 
     def tpc_abort(self, transaction):
