@@ -129,7 +129,13 @@ def get_data(content, security=False, domain=None):
 
     effective = content.effective()
     if effective is not (None, "None"):
-        data["effective"] = effective.strftime("%Y-%m-%dT%H:%M:%S")
+        try:
+            data["effective"] = effective.strftime("%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            # strftime can't handle dates before 1900 and Archetypes will
+            # returna FLOOR_DATE (1000/01/01).. so basically we can just ignore
+            # the effective date here
+            pass
 
     expires = content.expires()
     if expires is not (None, "None"):
