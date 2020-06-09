@@ -72,6 +72,16 @@ def get_security(content):
 def get_data(content, security=False, domain=None):
     """Return data to index in ES.
     """
+
+    def to_date_string(value):
+        try:
+            return value.strftime('%Y-%m-%dT%H:%M:%S')
+        except ValueError:
+            # strftime can't handle dates before 1900 and Archetypes will
+            # return a FLOOR_DATE (1000/01/01).. so basically we can just ignore
+            # the effective date here
+            logger.warning('Can not string format date')
+
     uid = get_uid(content)
     if not uid:
         return None, None
@@ -120,26 +130,20 @@ def get_data(content, security=False, domain=None):
         data["publishedYear"] = getattr(content, "pub_date_year")
 
     created = content.created()
-    if created is not (None, "None"):
-        data["created"] = created.strftime("%Y-%m-%dT%H:%M:%S")
+    if created is not (None, 'None'):
+        data['created'] = to_date_string(created)
 
     modified = content.modified()
-    if modified is not (None, "None"):
-        data["modified"] = modified.strftime("%Y-%m-%dT%H:%M:%S")
+    if modified is not (None, 'None'):
+        data['modified'] = to_date_string(modified)
 
     effective = content.effective()
-    if effective is not (None, "None"):
-        try:
-            data["effective"] = effective.strftime("%Y-%m-%dT%H:%M:%S")
-        except ValueError:
-            # strftime can't handle dates before 1900 and Archetypes will
-            # returna FLOOR_DATE (1000/01/01).. so basically we can just ignore
-            # the effective date here
-            pass
+    if effective is not (None, 'None'):
+        data['effective'] = to_date_string(effective)
 
     expires = content.expires()
-    if expires is not (None, "None"):
-        data["expires"] = expires.strftime("%Y-%m-%dT%H:%M:%S")
+    if expires is not (None, 'None'):
+        data['expires'] = to_date_string(expires)
 
     if (
         not security or "Anonymous" in data["authorizedUsers"]
