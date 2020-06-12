@@ -145,6 +145,14 @@ def get_data(content, security=False, domain=None):
     if expires not in (None, 'None'):
         data['expires'] = to_date_string(expires)
 
+    start = getattr(content, 'start', None)
+    if start not in (None, 'None'):
+        data['start'] = to_date_string(start)
+
+    end = getattr(content, 'end', None)
+    if end not in (None, 'None'):
+        data['end'] = to_date_string(end)
+
     if (
         not security or "Anonymous" in data["authorizedUsers"]
     ) and IContentish.providedBy(content):
