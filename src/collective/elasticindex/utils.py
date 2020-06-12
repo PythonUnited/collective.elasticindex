@@ -66,6 +66,8 @@ DOCUMENT_MAPPING = {
     'modified': DATE_MAPPING,
     'effective': DATE_MAPPING,
     'expires': DATE_MAPPING,
+    'start': DATE_MAPPING,
+    'end': DATE_MAPPING,
     'publishedYear': INT_MAPPING,
     'sortableTitle': KEYWORD_MAPPING,
     'authorizedUsers': KEYWORD_MAPPING,

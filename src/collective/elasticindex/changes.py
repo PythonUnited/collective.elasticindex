@@ -130,19 +130,19 @@ def get_data(content, security=False, domain=None):
         data["publishedYear"] = getattr(content, "pub_date_year")
 
     created = content.created()
-    if created is not (None, 'None'):
+    if created not in (None, 'None'):
         data['created'] = to_date_string(created)
 
     modified = content.modified()
-    if modified is not (None, 'None'):
+    if modified not in (None, 'None'):
         data['modified'] = to_date_string(modified)
 
     effective = content.effective()
-    if effective is not (None, 'None'):
+    if effective not in (None, 'None'):
         data['effective'] = to_date_string(effective)
 
     expires = content.expires()
-    if expires is not (None, 'None'):
+    if expires not in (None, 'None'):
         data['expires'] = to_date_string(expires)
 
     if (
