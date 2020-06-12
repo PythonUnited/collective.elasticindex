@@ -59,6 +59,7 @@ DOCUMENT_MAPPING = {
 
     # Not analyzed
     'url': STORED_KEYWORD_MAPPING,
+    'path': STORED_KEYWORD_MAPPING,
     'metaType': STORED_KEYWORD_MAPPING,
 
     # Not stored
@@ -71,6 +72,7 @@ DOCUMENT_MAPPING = {
     'publishedYear': INT_MAPPING,
     'sortableTitle': KEYWORD_MAPPING,
     'authorizedUsers': KEYWORD_MAPPING,
+    'review_state': KEYWORD_MAPPING,
     'exclude_from_nav': BOOL_MAPPING,
 
     'suggest': SUGGEST_MAPPING,

@@ -7,11 +7,13 @@ import urlparse
 from AccessControl.PermissionRole import rolesForPermissionOn
 from Acquisition import aq_base
 from Products.CMFCore.CatalogTool import _mergedLocalRoles
+from Products.CMFCore.WorkflowCore import WorkflowException
 from Products.CMFCore.interfaces import IFolderish, IContentish
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces.siteroot import IPloneSiteRoot
 from Products.CMFPlone.utils import safe_unicode, safe_callable
 from collective.elasticindex.suggester import ISuggester
+from plone import api
 from plone.i18n.normalizer.base import mapUnicode
 from plone.indexer.wrapper import IndexableObjectWrapper
 from transaction.interfaces import ISavepointDataManager, IDataManagerSavepoint
@@ -107,6 +109,11 @@ def get_data(content, security=False, domain=None):
     if callable(exclude_from_nav):
         exclude_from_nav = exclude_from_nav()
 
+    try:
+        review_state = api.content.get_state(obj=content)
+    except WorkflowException:
+        review_state = None
+
     data = {
         "title": title,
         "metaType": content.portal_type,
@@ -114,8 +121,10 @@ def get_data(content, security=False, domain=None):
         "description": content.Description(),
         "subject": content.Subject(),
         "contributors": content.Contributors(),
+        "review_state": review_state,
         "exclude_from_nav": exclude_from_nav,
         "url": url,
+        "path": '/'.join(content.getPhysicalPath()),
         "author": content.Creator(),
         "content": text,
     }
