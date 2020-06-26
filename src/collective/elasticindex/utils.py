@@ -50,7 +50,6 @@ SUGGEST_MAPPING = {
 DOCUMENT_MAPPING = {
     # Stored
     'title': STORED_NL_TEXT_MAPPING,
-    'subject': STORED_NL_TEXT_MAPPING,
     'description': STORED_NL_TEXT_MAPPING,
     'content': STORED_NL_TEXT_MAPPING,
 
@@ -70,6 +69,7 @@ DOCUMENT_MAPPING = {
     'start': DATE_MAPPING,
     'end': DATE_MAPPING,
     'publishedYear': INT_MAPPING,
+    'subject': KEYWORD_MAPPING,
     'sortableTitle': KEYWORD_MAPPING,
     'authorizedUsers': KEYWORD_MAPPING,
     'review_state': KEYWORD_MAPPING,
