@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from plone import api
 import pyes
 import urlparse
@@ -49,9 +51,9 @@ SUGGEST_MAPPING = {
 
 DOCUMENT_MAPPING = {
     # Stored
-    'title': STORED_NL_TEXT_MAPPING,
-    'description': STORED_NL_TEXT_MAPPING,
-    'content': STORED_NL_TEXT_MAPPING,
+    'title': STORED_TEXT_MAPPING,
+    'description': STORED_TEXT_MAPPING,
+    'content': STORED_TEXT_MAPPING,
 
     'author': STORED_TEXT_MAPPING,
     'contributors': STORED_TEXT_MAPPING,
@@ -101,7 +103,13 @@ def connect(urls):
 def create_index(settings):
     language_settings = None
 
+    mapping = deepcopy(DOCUMENT_MAPPING)
+
     if api.portal.get_default_language() == 'nl':
+        mapping['title'] = STORED_NL_TEXT_MAPPING
+        mapping['description'] =  STORED_NL_TEXT_MAPPING
+        mapping['content'] = STORED_NL_TEXT_MAPPING
+
         language_settings = {
             'settings': {
                 'analysis': {
@@ -142,7 +150,7 @@ def create_index(settings):
     connection.indices.create_index_if_missing(settings.index_name,
                                                language_settings)
     connection.indices.put_mapping(
-        'document', {'properties': DOCUMENT_MAPPING}, [settings.index_name])
+        'document', {'properties': mapping}, [settings.index_name])
 
 
 def delete_index(settings):
