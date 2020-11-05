@@ -19,7 +19,7 @@ STORED_NL_TEXT_MAPPING = {
     'fields': {
         'dutch': {
             'type': 'text',
-            'analyzer': 'custom_dutch',
+            'analyzer': 'dutch',
         }
     }
 }
@@ -120,7 +120,7 @@ def create_index(settings):
                         },
                         'dutch_kp_stemmer': {
                             'type': 'stemmer',
-                            'language': 'dutch_kp'
+                            'language': 'dutch'
                         },
                         'dutch_override': {
                             'type': 'stemmer_override',
@@ -131,8 +131,7 @@ def create_index(settings):
                         }
                     },
                     'analyzer': {
-                        'custom_dutch': {
-                            'type': 'custom',
+                        'dutch': {
                             'tokenizer': 'standard',
                             'filter': [
                                 'lowercase',
